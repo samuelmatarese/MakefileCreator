@@ -20,14 +20,20 @@ int main(int argc, char *argv[])
     DIR *currentDirectory;
     struct dirent *dir;
     int fileCount = 0;
-    char *pPath = argv[1];
+    char *pPath;
     char **pFileNames = (char **)malloc(sizeof(char *) * fileCount);
+    char *makeFilePath;
 
+    pPath = argv[1];
     currentDirectory = opendir(pPath);
 
     if (currentDirectory)
     {
-        pMakefile = fopen("makefile", "w");
+        makeFilePath = malloc(strlen(pPath) + 9);
+        strcpy(makeFilePath, pPath);
+        strcat(makeFilePath, "/makefile");
+
+        pMakefile = fopen(makeFilePath, "w");
 
         while ((dir = readdir(currentDirectory)) != NULL)
         {
@@ -44,8 +50,10 @@ int main(int argc, char *argv[])
 
             if (pFileNames[i][length - 1] == 'c' && pFileNames[i][length - 2] == '.')
             {
-                char fileNameWithoutEnd[length - 2];
+                char *fileNameWithoutEnd = (char *)malloc(length - 1);
+                memset(fileNameWithoutEnd, '\0', sizeof(fileNameWithoutEnd));
                 strncpy(fileNameWithoutEnd, pFileNames[i], length - 2);
+                 fileNameWithoutEnd[length - 2] = '\0';
                 fprintf(pMakefile, "build/%s.o ", fileNameWithoutEnd);
             }
             else
@@ -60,7 +68,8 @@ int main(int argc, char *argv[])
         for (int i = 0; i < fileCount; i++)
         {
             int length = strlen(pFileNames[i]);
-            char fileNameWithoutEnd[length - 2];
+            char *fileNameWithoutEnd = (char *)malloc(length - 1);
+            memset(fileNameWithoutEnd, '\0', sizeof(fileNameWithoutEnd));
             strncpy(fileNameWithoutEnd, pFileNames[i], length - 2);
             fprintf(pMakefile, "build/%s.o ", fileNameWithoutEnd);
         }
@@ -70,7 +79,8 @@ int main(int argc, char *argv[])
         for (int i = 0; i < fileCount; i++)
         {
             int length = strlen(pFileNames[i]);
-            char fileNameWithoutEnd[length - 2];
+            char *fileNameWithoutEnd = (char *)malloc(length - 1);
+            memset(fileNameWithoutEnd, '\0', sizeof(fileNameWithoutEnd));
             strncpy(fileNameWithoutEnd, pFileNames[i], length - 2);
 
             fprintf(pMakefile, "build/%s.o: %s | build\n\tgcc -c %s -o build/%s.o\n\n",
@@ -81,5 +91,6 @@ int main(int argc, char *argv[])
 
         fclose(pMakefile);
         closedir(currentDirectory);
+        free(makeFilePath);
     }
 }
